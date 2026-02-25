@@ -33,10 +33,13 @@ StellarFluxOs/
 ├─ .eslintrc.cjs                  # ESLint configuration
 ├─ .gitignore                     # Git ignore rules
 ├─ .prettierrc                    # Prettier formatting rules
-├─ DEVLOG.md                      # Development journal
+├─ CODE_OF_CONDUCT.md             # Community code of conduct
+├─ CONTRIBUTING.md                # Contribution guidelines
 ├─ LICENSE                        # MIT License
 ├─ QUICKSTART.md                  # Quick start guide
 ├─ README.md                      # Main documentation
+├─ SECURITY.md                    # Security policy
+├─ STRUCTURE.md                   # Project architecture
 ├─ index.html                     # HTML entry point
 ├─ package.json                   # Dependencies + scripts
 ├─ postcss.config.cjs             # PostCSS configuration
@@ -187,12 +190,14 @@ Access via `import.meta.env.VITE_*`
 
 ## Future Enhancements
 
-See DEVLOG.md for detailed roadmap. Key additions:
+Planned features and improvements:
 - Cloud sync (Supabase/Firebase)
 - More apps (file manager, code editor)
 - Custom themes
 - Leaderboard for game
 - WebSocket multiplayer
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding new features.
 
 ---
 
