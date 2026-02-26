@@ -3,12 +3,15 @@ import Terminal from './apps/Terminal';
 import Notepad from './apps/Notepad';
 import Logs from './apps/Logs';
 import Game from './apps/Game';
+import Files from './apps/Files';
 
+// app registry - add new apps here no cap
 const appMap = {
   terminal: { name: 'Terminal', component: Terminal },
   notepad: { name: 'Notepad', component: Notepad },
   logs: { name: 'Logs', component: Logs },
   game: { name: 'Game', component: Game },
+  files: { name: 'Files', component: Files },
 };
 
 export default function Desktop({
@@ -20,6 +23,8 @@ export default function Desktop({
   onFocus,
   onMove,
   onResize,
+  userId,
+  deviceSpecs,
 }) {
   return (
     <div className="flex-1 relative overflow-hidden">
@@ -42,7 +47,12 @@ export default function Desktop({
             onMove={(pos) => onMove(appId, pos)}
             position={windows[appId].position}
           >
-            {!isMinimized && app.component && <app.component />}
+            {!isMinimized && app.component && (
+              <app.component
+                userId={userId}
+                deviceSpecs={deviceSpecs}
+              />
+            )}
           </Window>
         );
       })}
