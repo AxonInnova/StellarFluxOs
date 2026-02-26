@@ -1,38 +1,32 @@
-// left side dock with app icons
-// click to open/focus apps no cap
-export default function Dock({ apps, activeApp, onAppClick, onReset }) {
-  return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-50">
-      {/* dock container */}
-      <div className="flex flex-col gap-3 bg-stellar-darker/50 backdrop-blur-md border border-stellar-accent/20 rounded-2xl p-3 shadow-2xl">
-        {apps.map((app) => (
-          <button
-            key={app.id}
-            onClick={() => onAppClick(app.id)}
-            className={`
-              w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 cursor-pointer font-mono font-bold text-lg
-              ${activeApp === app.id
-                ? 'bg-stellar-secondary/40 text-stellar-accent scale-110 shadow-lg shadow-stellar-secondary/50'
-                : 'bg-stellar-accent/10 text-stellar-accent/70 hover:bg-stellar-accent/20 hover:text-stellar-accent'
-              }
-            `}
-            title={app.name}
-          >
-            {app.icon}
-          </button>
-        ))}
-      </div>
+export default function Dock({ apps, onAppClick, openWindows }) {
+  const appConfig = {
+    terminal: { name: 'Terminal', icon: '◆' },
+    notepad: { name: 'Notepad', icon: '✎' },
+    logs: { name: 'Logs', icon: '📋' },
+    game: { name: 'Game', icon: '▶' },
+  };
 
-      {/* bottom section - reset button */}
-      <div className="flex flex-col gap-2 bg-stellar-darker/50 backdrop-blur-md border border-stellar-danger/20 rounded-2xl p-2">
-        <button
-          onClick={onReset}
-          title="Reset all data"
-          className="w-12 h-12 flex items-center justify-center rounded-xl text-stellar-danger/60 hover:text-stellar-danger hover:bg-stellar-danger/10 transition text-xl"
-        >
-          ⟲
-        </button>
-      </div>
+  return (
+    <div className="w-20 bg-gradient-to-b from-slate-900/95 to-slate-950/95 border-r border-cyan-500/10 flex flex-col items-center py-4 gap-3 shadow-lg">
+      {apps.map((appId) => {
+        const config = appConfig[appId];
+        const isOpen = openWindows.includes(appId);
+
+        return (
+          <button
+            key={appId}
+            onClick={() => onAppClick(appId)}
+            className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-200 font-mono text-xl ${
+              isOpen
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-lg shadow-cyan-500/20'
+                : 'bg-slate-800/50 text-slate-400 border border-cyan-500/10 hover:bg-slate-700/50 hover:text-cyan-300'
+            }`}
+            title={config.name}
+          >
+            {config.icon}
+          </button>
+        );
+      })}
     </div>
   );
 }

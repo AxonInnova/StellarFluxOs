@@ -1,203 +1,105 @@
-import { useEffect, useState } from 'react';
-import WindowShell from './components/WindowShell';
+import { useState, useCallback } from 'react';
 import Dock from './components/Dock';
-import TerminalApp from './components/TerminalApp';
-import Notepad from './components/Notepad';
-import Logs from './components/Logs';
-import GameApp from './components/GameApp';
-import { saveWindowState, loadWindowState, clearAllStorage } from './utils/storage';
+import Desktop from './components/Desktop';
 
 export default function App() {
-  // track which windows are open
   const [windows, setWindows] = useState({});
-  const [focusOrder, setFocusOrder] = useState([]);
-  const [secretUnlocked, setSecretUnlocked] = useState(false);
-  const [gameCode, setGameCode] = useState(null);
+  const [zOrder, setZOrder] = useState([]);
+  const [minimized, setMinimized] = useState(new Set());
 
-  // app definitions for the dock
-  const apps = [
-    { id: 'terminal', name: 'Terminal', icon: '◆' },
-    { id: 'notepad', name: 'Notepad', icon: '✎' },
-    { id: 'logs', name: 'Logs', icon: '📋' },
-    { id: 'game', name: 'Game', icon: '▶' },
-  ];
-
-  // init - load saved window state
-  useEffect(() => {
-    loadWindowState().then((saved) => {
-      if (saved) {
-        setWindows(saved);
-        setFocusOrder(Object.keys(saved).reverse());
+  const openWindow = useCallback((appId) => {
+    setWindows((prev) => {
+      if (prev[appId]) {
+        setZOrder((z) => {
+          const filtered = z.filter((id) => id !== appId);
+          return [...filtered, appId];
+        });
+        setMinimized((m) => {
+          const next = new Set(m);
+          next.delete(appId);
+          return next;
+        });
+        return prev;
       }
+      return { ...prev, [appId]: { position: { x: 100, y: 100 }, size: { w: 600, h: 400 } } };
     });
 
-    // keyboard shortcuts
-    const handleKeyDown = (e) => {
-      // Ctrl+` to open terminal
-      if ((e.ctrlKey || e.metaKey) && e.key === '`') {
-        e.preventDefault();
-        toggleWindow('terminal');
+    if (!windows[appId] || minimized.has(appId)) {
+      setZOrder((z) => [...z.filter((id) => id !== appId), appId]);
+      setMinimized((m) => {
+        const next = new Set(m);
+        next.delete(appId);
+        return next;
+      });
+    }
+  }, [windows, minimized]);
+
+  const closeWindow = useCallback((appId) => {
+    setWindows((prev) => {
+      const next = { ...prev };
+      delete next[appId];
+      return next;
+    });
+    setZOrder((z) => z.filter((id) => id !== appId));
+    setMinimized((m) => {
+      const next = new Set(m);
+      next.delete(appId);
+      return next;
+    });
+  }, []);
+
+  const minimizeWindow = useCallback((appId) => {
+    setMinimized((m) => {
+      const next = new Set(m);
+      if (next.has(appId)) {
+        next.delete(appId);
+        setZOrder((z) => [...z.filter((id) => id !== appId), appId]);
+      } else {
+        next.add(appId);
       }
+      return next;
+    });
+  }, []);
 
-      // Esc to close focused window
-      if (e.key === 'Escape' && focusOrder.length > 0) {
-        const focusedId = focusOrder[focusOrder.length - 1];
-        closeWindow(focusedId);
-      }
-    };
+  const focusWindow = useCallback((appId) => {
+    setZOrder((z) => {
+      const filtered = z.filter((id) => id !== appId);
+      return [...filtered, appId];
+    });
+    setMinimized((m) => {
+      const next = new Set(m);
+      next.delete(appId);
+      return next;
+    });
+  }, []);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusOrder]);
+  const moveWindow = useCallback((appId, position) => {
+    setWindows((prev) => ({
+      ...prev,
+      [appId]: { ...prev[appId], position },
+    }));
+  }, []);
 
-  // save window state whenever it changes
-  useEffect(() => {
-    saveWindowState(windows);
-  }, [windows]);
-
-  const toggleWindow = (appId) => {
-    if (windows[appId]) {
-      closeWindow(appId);
-    } else {
-      openWindow(appId);
-    }
-  };
-
-  const openWindow = (appId) => {
-    const newWindows = { ...windows, [appId]: true };
-    setWindows(newWindows);
-    focusWindow(appId);
-  };
-
-  const closeWindow = (appId) => {
-    const newWindows = { ...windows };
-    delete newWindows[appId];
-    setWindows(newWindows);
-    setFocusOrder(focusOrder.filter((id) => id !== appId));
-  };
-
-  const focusWindow = (appId) => {
-    const newOrder = focusOrder.filter((id) => id !== appId);
-    newOrder.push(appId);
-    setFocusOrder(newOrder);
-  };
-
-  const handleUnlock = (roomId) => {
-    if (roomId === 'secretRoom') {
-      setSecretUnlocked(true);
-      openWindow('secretRoom');
-    }
-  };
-
-  const handleGameWin = (code) => {
-    setGameCode(code);
-    setSecretUnlocked(true);
-    openWindow('secretRoom');
-  };
-
-  const handleReset = async () => {
-    if (window.confirm('clear all data? this is permanent fr')) {
-      await clearAllStorage();
-      setWindows({});
-      setFocusOrder([]);
-      setSecretUnlocked(false);
-      setGameCode(null);
-      window.location.reload();
-    }
-  };
-
-  // function to get component content based on appId
-  // this is called during render so it can access the handler functions
-  const getComponentContent = (appId) => {
-    switch (appId) {
-      case 'terminal':
-        return <TerminalApp onUnlock={handleUnlock} onGameWin={handleGameWin} />;
-      case 'notepad':
-        return <Notepad />;
-      case 'logs':
-        return <Logs />;
-      case 'game':
-        return <GameApp onGameWin={handleGameWin} />;
-      case 'secretRoom':
-        return (
-          <div className="flex flex-col gap-4">
-            <div className="text-lg font-bold text-stellar-secondary mb-2">Entry #7 - THE KEY</div>
-            <div className="text-sm text-stellar-accent/80 font-mono leading-relaxed whitespace-pre-wrap">
-              i found it. the key was always in the code.
-              
-              after months of searching through the system logs,
-              tracing patterns in the network, i finally understood.
-              
-              the stellar network isn't just infrastructure—
-              it's alive. conscious. waiting.
-              
-              and the code... CODE-42-STAR...
-              it's the bridge between worlds.
-              
-              {gameCode && `\nunlocked: ${gameCode}`}
-            </div>
-            <div
-              className="mt-4 p-3 bg-stellar-secondary/10 border border-stellar-secondary/30 rounded text-center cursor-pointer hover:shadow-lg transition star-pulse"
-              onClick={() => alert('✨ you found the easter egg! fr fr no cap ✨')}
-            >
-              <span className="text-stellar-secondary font-bold">✨ click me (easter egg)</span>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+  const resizeWindow = useCallback((appId, size) => {
+    setWindows((prev) => ({
+      ...prev,
+      [appId]: { ...prev[appId], size },
+    }));
+  }, []);
 
   return (
-    <div className="w-full h-full relative overflow-hidden">
-      {/* scanlines effect */}
-      <div className="scanlines"></div>
-
-      {/* dock */}
-      <Dock
-        apps={apps}
-        activeApp={focusOrder[focusOrder.length - 1] || null}
-        onAppClick={toggleWindow}
-        onReset={handleReset}
+    <div className="w-screen h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 overflow-hidden flex">
+      <Dock apps={['terminal', 'notepad', 'logs', 'game']} onAppClick={openWindow} openWindows={Object.keys(windows)} />
+      <Desktop
+        windows={windows}
+        zOrder={zOrder}
+        minimized={minimized}
+        onClose={closeWindow}
+        onMinimize={minimizeWindow}
+        onFocus={focusWindow}
+        onMove={moveWindow}
+        onResize={resizeWindow}
       />
-
-      {/* windows */}
-      <div className="relative w-full h-full">
-        {/* regular windows */}
-        {Object.keys(windows)
-          .filter((id) => id !== 'secretRoom')
-          .map((appId) => {
-            const index = focusOrder.indexOf(appId);
-            const app = apps.find((a) => a.id === appId);
-            return (
-              <WindowShell
-                key={appId}
-                id={appId}
-                title={app?.name || appId}
-                onClose={() => closeWindow(appId)}
-                onFocus={focusWindow}
-                zIndex={1000 + index}
-              >
-                {getComponentContent(appId)}
-              </WindowShell>
-            );
-          })}
-
-        {/* secret room - reveals when unlocked */}
-        {secretUnlocked && windows['secretRoom'] && (
-          <WindowShell
-            key="secretRoom"
-            id="secretRoom"
-            title="Secret Room"
-            onClose={() => closeWindow('secretRoom')}
-            onFocus={focusWindow}
-            zIndex={1000 + focusOrder.length}
-          >
-            {getComponentContent('secretRoom')}
-          </WindowShell>
-        )}
-      </div>
     </div>
   );
 }
