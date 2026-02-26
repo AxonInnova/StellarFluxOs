@@ -2,6 +2,7 @@ import { signOut } from '../lib/auth';
 
 // dock launcher - left sidebar fr
 // this is where you go to open stuff
+// organized chaos but make it aesthetic
 export default function Dock({ apps, onAppClick, openWindows, user }) {
   const appConfig = {
     terminal: { name: 'Terminal', icon: '◆' },
@@ -9,6 +10,7 @@ export default function Dock({ apps, onAppClick, openWindows, user }) {
     logs: { name: 'Logs', icon: '📋' },
     game: { name: 'Game', icon: '▶' },
     files: { name: 'Files', icon: '📁' },
+    admin: { name: 'Admin', icon: '⚙' },
   };
 
   const handleLogout = async () => {
@@ -16,13 +18,20 @@ export default function Dock({ apps, onAppClick, openWindows, user }) {
     await signOut();
   };
 
-  const isAdmin = user?.email === import.meta.env.VITE_ADMIN_EMAIL || import.meta.env.MODE !== 'production';
+  // check if user is admin - admin mode activated fr
+  const isAdmin =
+    user?.email === import.meta.env.VITE_ADMIN_EMAIL || import.meta.env.MODE !== 'production';
 
   return (
     <div className="w-20 bg-gradient-to-b from-slate-900/95 to-slate-950/95 border-r border-cyan-500/10 flex flex-col items-center py-4 gap-3 shadow-lg relative z-40">
       {/* app launcher buttons */}
       {apps.map((appId) => {
         const config = appConfig[appId];
+        if (!config) return null;
+
+        // hide admin button if not admin
+        if (appId === 'admin' && !isAdmin) return null;
+
         const isOpen = openWindows.includes(appId);
 
         return (
@@ -53,7 +62,7 @@ export default function Dock({ apps, onAppClick, openWindows, user }) {
         )}
         <button
           onClick={handleLogout}
-          className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-400 border border-cyan-500/10 hover:bg-red-500/20 hover:text-red-300 transition text-sm"
+          className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-400 border border-cyan-500/10 hover:bg-red-500/20 hover:text-red-300 transition text-sm font-mono"
           title="Logout"
         >
           ⟴

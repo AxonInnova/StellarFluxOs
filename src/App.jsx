@@ -206,6 +206,14 @@ export default function App() {
     }));
   }, []);
 
+  // check if user is admin - admin mode activated fr
+  const isAdmin =
+    user && (user.email === import.meta.env.VITE_ADMIN_EMAIL || import.meta.env.MODE !== 'production');
+
+  // app list - conditionally add admin app fr
+  const appList = ['terminal', 'notepad', 'logs', 'game', 'files'];
+  if (isAdmin) appList.push('admin');
+
   // loading state
   if (loading) {
     return (
@@ -224,7 +232,7 @@ export default function App() {
   if (showDeviceConsent) {
     return (
       <div className="w-screen h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 flex">
-        <Dock apps={['terminal', 'notepad', 'logs', 'game', 'files']} onAppClick={openWindow} openWindows={Object.keys(windows)} />
+        <Dock apps={appList} onAppClick={openWindow} openWindows={Object.keys(windows)} user={user} />
         <Desktop
           windows={windows}
           zOrder={zOrder}
@@ -235,7 +243,9 @@ export default function App() {
           onMove={moveWindow}
           onResize={resizeWindow}
           userId={user.id}
+          userEmail={user.email}
           deviceSpecs={deviceSpecs}
+          isAdmin={isAdmin}
         />
         <DeviceConsentModal onConsent={handleDeviceConsent} onDeny={handleDeviceDeny} />
       </div>
@@ -245,13 +255,13 @@ export default function App() {
   // authenticated - show desktop fr
   return (
     <div className="w-screen h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 overflow-hidden flex">
-      {/* nebula background particles */}
+      {/* nebula background particles - the vibe setter fr */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div className="absolute w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ top: '10%', left: '5%', animationDuration: '8s' }} />
         <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{ bottom: '10%', right: '5%', animationDuration: '10s' }} />
       </div>
 
-      <Dock apps={['terminal', 'notepad', 'logs', 'game', 'files']} onAppClick={openWindow} openWindows={Object.keys(windows)} user={user} />
+      <Dock apps={appList} onAppClick={openWindow} openWindows={Object.keys(windows)} user={user} />
       <Desktop
         windows={windows}
         zOrder={zOrder}
@@ -262,7 +272,9 @@ export default function App() {
         onMove={moveWindow}
         onResize={resizeWindow}
         userId={user.id}
+        userEmail={user.email}
         deviceSpecs={deviceSpecs}
+        isAdmin={isAdmin}
       />
     </div>
   );

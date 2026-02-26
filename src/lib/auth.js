@@ -5,6 +5,7 @@ import { supabase } from './supabase';
 
 export const signUpWithEmail = async (email, password) => {
   try {
+    console.log('📝 attempting signup for:', email);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -13,32 +14,46 @@ export const signUpWithEmail = async (email, password) => {
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ signup error:', error);
+      throw error;
+    }
+    
+    console.log('✓ signup success:', data.user?.id);
     return { user: data.user, error: null };
   } catch (err) {
-    console.error('signup error fr:', err);
-    return { user: null, error: err.message };
+    const errorMsg = err?.message || err?.toString() || 'unknown error fr';
+    console.error('signup error fr:', errorMsg);
+    return { user: null, error: errorMsg };
   }
 };
 
 export const signInWithEmail = async (email, password) => {
   try {
+    console.log('🔓 attempting signin for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ signin error:', error);
+      throw error;
+    }
+    
+    console.log('✓ signin success:', data.user?.id);
     return { user: data.user, error: null };
   } catch (err) {
-    console.error('signin error:', err);
-    return { user: null, error: err.message };
+    const errorMsg = err?.message || err?.toString() || 'unknown error fr';
+    console.error('signin error:', errorMsg);
+    return { user: null, error: errorMsg };
   }
 };
 
 // guest vibes - throwaway session no cap
 export const signInAsGuest = async () => {
   try {
+    console.log('👤 attempting guest signup');
     const guestEmail = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}@guest.local`;
     const guestPassword = Math.random().toString(36).substr(2, 12);
 
@@ -50,20 +65,29 @@ export const signInAsGuest = async () => {
       },
     });
 
-    if (error && error.message !== 'User already registered') throw error;
+    if (error && error.message !== 'User already registered') {
+      console.error('❌ guest signup error:', error);
+      throw error;
+    }
 
     // auto sign in
+    console.log('🔓 attempting guest signin');
     const signInResult = await supabase.auth.signInWithPassword({
       email: guestEmail,
       password: guestPassword,
     });
 
-    if (signInResult.error) throw signInResult.error;
+    if (signInResult.error) {
+      console.error('❌ guest signin error:', signInResult.error);
+      throw signInResult.error;
+    }
 
+    console.log('✓ guest signin success:', signInResult.data.user?.id);
     return { user: signInResult.data.user, error: null, isGuest: true };
   } catch (err) {
-    console.error('guest signup error:', err);
-    return { user: null, error: err.message, isGuest: true };
+    const errorMsg = err?.message || err?.toString() || 'unknown error fr';
+    console.error('guest signup error:', errorMsg);
+    return { user: null, error: errorMsg, isGuest: true };
   }
 };
 

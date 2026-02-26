@@ -4,6 +4,7 @@ import Notepad from './apps/Notepad';
 import Logs from './apps/Logs';
 import Game from './apps/Game';
 import Files from './apps/Files';
+import Admin from './apps/Admin';
 
 // app registry - add new apps here no cap
 const appMap = {
@@ -12,6 +13,7 @@ const appMap = {
   logs: { name: 'Logs', component: Logs },
   game: { name: 'Game', component: Game },
   files: { name: 'Files', component: Files },
+  admin: { name: 'Admin', component: Admin },
 };
 
 export default function Desktop({
@@ -24,7 +26,9 @@ export default function Desktop({
   onMove,
   onResize,
   userId,
+  userEmail,
   deviceSpecs,
+  isAdmin,
 }) {
   return (
     <div className="flex-1 relative overflow-hidden">
@@ -32,6 +36,7 @@ export default function Desktop({
         if (!windows[appId]) return null;
         const isMinimized = minimized.has(appId);
         const app = appMap[appId];
+        if (!app) return null; // skip unknown apps
         const zIndex = zOrder.indexOf(appId) + 1;
 
         return (
@@ -50,7 +55,9 @@ export default function Desktop({
             {!isMinimized && app.component && (
               <app.component
                 userId={userId}
+                userEmail={userEmail}
                 deviceSpecs={deviceSpecs}
+                isAdmin={isAdmin}
               />
             )}
           </Window>
