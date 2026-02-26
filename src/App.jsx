@@ -22,39 +22,6 @@ export default function App() {
     { id: 'game', name: 'Game', icon: '▶' },
   ];
 
-  // components mapping
-  const componentMap = {
-    terminal: <TerminalApp onUnlock={handleUnlock} onGameWin={handleGameWin} />,
-    notepad: <Notepad />,
-    logs: <Logs />,
-    game: <GameApp onGameWin={handleGameWin} />,
-    secretRoom: (
-      <div className="flex flex-col gap-4">
-        <div className="text-lg font-bold text-stellar-secondary mb-2">Entry #7 - THE KEY</div>
-        <div className="text-sm text-stellar-accent/80 font-mono leading-relaxed whitespace-pre-wrap">
-          i found it. the key was always in the code.
-          
-          after months of searching through the system logs,
-          tracing patterns in the network, i finally understood.
-          
-          the stellar network isn't just infrastructure—
-          it's alive. conscious. waiting.
-          
-          and the code... CODE-42-STAR...
-          it's the bridge between worlds.
-          
-          {gameCode && `\nunlocked: ${gameCode}`}
-        </div>
-        <div
-          className="mt-4 p-3 bg-stellar-secondary/10 border border-stellar-secondary/30 rounded text-center cursor-pointer hover:shadow-lg transition star-pulse"
-          onClick={() => alert('✨ you found the easter egg! fr fr no cap ✨')}
-        >
-          <span className="text-stellar-secondary font-bold">✨ click me (easter egg)</span>
-        </div>
-      </div>
-    ),
-  };
-
   // init - load saved window state
   useEffect(() => {
     loadWindowState().then((saved) => {
@@ -139,6 +106,49 @@ export default function App() {
     }
   };
 
+  // function to get component content based on appId
+  // this is called during render so it can access the handler functions
+  const getComponentContent = (appId) => {
+    switch (appId) {
+      case 'terminal':
+        return <TerminalApp onUnlock={handleUnlock} onGameWin={handleGameWin} />;
+      case 'notepad':
+        return <Notepad />;
+      case 'logs':
+        return <Logs />;
+      case 'game':
+        return <GameApp onGameWin={handleGameWin} />;
+      case 'secretRoom':
+        return (
+          <div className="flex flex-col gap-4">
+            <div className="text-lg font-bold text-stellar-secondary mb-2">Entry #7 - THE KEY</div>
+            <div className="text-sm text-stellar-accent/80 font-mono leading-relaxed whitespace-pre-wrap">
+              i found it. the key was always in the code.
+              
+              after months of searching through the system logs,
+              tracing patterns in the network, i finally understood.
+              
+              the stellar network isn't just infrastructure—
+              it's alive. conscious. waiting.
+              
+              and the code... CODE-42-STAR...
+              it's the bridge between worlds.
+              
+              {gameCode && `\nunlocked: ${gameCode}`}
+            </div>
+            <div
+              className="mt-4 p-3 bg-stellar-secondary/10 border border-stellar-secondary/30 rounded text-center cursor-pointer hover:shadow-lg transition star-pulse"
+              onClick={() => alert('✨ you found the easter egg! fr fr no cap ✨')}
+            >
+              <span className="text-stellar-secondary font-bold">✨ click me (easter egg)</span>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="w-full h-full relative overflow-hidden">
       {/* scanlines effect */}
@@ -149,6 +159,7 @@ export default function App() {
         apps={apps}
         activeApp={focusOrder[focusOrder.length - 1] || null}
         onAppClick={toggleWindow}
+        onReset={handleReset}
       />
 
       {/* windows */}
@@ -168,7 +179,7 @@ export default function App() {
                 onFocus={focusWindow}
                 zIndex={1000 + index}
               >
-                {componentMap[appId]}
+                {getComponentContent(appId)}
               </WindowShell>
             );
           })}
@@ -183,19 +194,9 @@ export default function App() {
             onFocus={focusWindow}
             zIndex={1000 + focusOrder.length}
           >
-            {componentMap['secretRoom']}
+            {getComponentContent('secretRoom')}
           </WindowShell>
         )}
-
-        {/* reset button handler */}
-        <div className="fixed bottom-4 left-4 flex gap-2 pointer-events-none">
-          <button
-            onClick={handleReset}
-            className="pointer-events-auto px-3 py-1 text-xs bg-stellar-danger/10 text-stellar-danger border border-stellar-danger/30 rounded hover:bg-stellar-danger/20 transition"
-          >
-            Reset
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 // left side dock with app icons
 // click to open/focus apps no cap
-export default function Dock({ apps, activeApp, onAppClick }) {
+export default function Dock({ apps, activeApp, onAppClick, onReset }) {
   return (
     <div className="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-50">
       {/* dock container */}
@@ -26,6 +26,7 @@ export default function Dock({ apps, activeApp, onAppClick }) {
       {/* bottom section - reset button */}
       <div className="flex flex-col gap-2 bg-stellar-darker/50 backdrop-blur-md border border-stellar-danger/20 rounded-2xl p-2">
         <button
+          onClick={onReset}
           title="Reset all data"
           className="w-12 h-12 flex items-center justify-center rounded-xl text-stellar-danger/60 hover:text-stellar-danger hover:bg-stellar-danger/10 transition text-xl"
         >
