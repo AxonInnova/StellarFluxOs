@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Window({
   id,
@@ -28,25 +28,32 @@ export default function Window({
     });
   };
 
-  const handleMouseMove = (e) => {
+  useEffect(() => {
     if (!isDragging) return;
-    onMove({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y,
-    });
-  };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+    const handleMouseMove = (e) => {
+      onMove({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, onMove]);
 
   return (
     <div
       ref={windowRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
       style={{
         position: 'absolute',
         left: `${position.x}px`,
