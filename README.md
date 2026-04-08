@@ -226,4 +226,4 @@ npm run build
 
 ---
 
-**Alpha v0.1.0** | Built with ✨ by **AxonInnova**
+**Alpha v0.1.0** |
